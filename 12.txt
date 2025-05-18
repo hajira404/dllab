@@ -1,0 +1,73 @@
+#DL 12
+# 1. Problem Statement:
+# Build a CNN to recognize photos using the CIFAR-10 dataset with data augmentation.
+
+# 2. Import Libraries
+# 2. Import Libraries
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+
+
+# 3. Data Preparation
+# Load CIFAR-10 data
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+
+# Normalize pixel values
+x_train = x_train.astype('float32') / 255
+x_test = x_test.astype('float32') / 255
+
+# One-hot encode labels
+y_train = to_categorical(y_train, 10)
+y_test = to_categorical(y_test, 10)
+
+# Data augmentation
+datagen = ImageDataGenerator(
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    horizontal_flip=True
+)
+datagen.fit(x_train)
+
+# 4. Model Definition
+model = Sequential()
+model.add(Conv2D(32, (3,3), activation='relu', input_shape=(32,32,3)))
+model.add(Conv2D(32, (3,3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Dropout(0.25))
+model.add(Conv2D(64, (3,3), activation='relu'))
+model.add(Conv2D(64, (3,3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Dropout(0.25))
+model.add(Flatten())
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(10, activation='softmax'))
+
+# 5. Compile the Model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# 6. Training
+history = model.fit(datagen.flow(x_train, y_train, batch_size=64),
+                    epochs=20, validation_data=(x_test, y_test), verbose=1)
+
+# 7. Evaluation
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f"\nTest Accuracy: {accuracy:.4f}")
+
+# Plot Training and Validation Accuracy
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Training vs Validation Accuracy (CIFAR-10)')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid()
+plt.show()
+
+# 8. Conclusion
+# The CNN model with data augmentation improves generalization and classifies CIFAR-10 images well.
