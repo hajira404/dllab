@@ -1,0 +1,48 @@
+dl 7
+# 2. Import Libraries
+from keras.datasets import boston_housing
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+# 3. Data Preparation
+(x_train, y_train), (x_test, y_test) = boston_housing.load_data()
+
+# Normalize features
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+
+# 4. Model Definition
+model = Sequential()
+model.add(Dense(64, input_dim=x_train.shape[1], activation='relu'))
+model.add(Dense(32, activation='relu'))
+model.add(Dense(1))  # Regression output
+
+# 5. Compile the Model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# 6. Training
+history = model.fit(x_train, y_train, epochs=100, batch_size=16, verbose=0)
+
+# 7. Evaluation
+mse = model.evaluate(x_test, y_test)
+print(f"\nMean Squared Error on Test Data: {mse:.2f}")
+
+# Plot Training Loss
+plt.plot(history.history['loss'])
+plt.title('Training Loss Curve (Boston Housing)')
+plt.xlabel('Epochs')
+plt.ylabel('Loss (MSE)')
+plt.grid()
+plt.show()
+
+# Plot Predicted vs Actual Prices
+y_pred = model.predict(x_test).flatten()
+plt.scatter(y_test, y_pred)
+plt.xlabel('Actual Prices')
+plt.ylabel('Predicted Prices')
+plt.title('Actual vs Predicted House Prices')
+plt.grid()
+plt.show()

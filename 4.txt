@@ -1,0 +1,25 @@
+DL 4
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential 
+from keras.layers import Dense
+from keras.utils import to_categorical
+url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data"
+columns=['Class','Alcolhal','Malic Acid','Ash','Alcanity of ash','Magnesium','Total Phenols','Flavanoids','Nonflavanoidphenols','Proanthocyanins','ColorIntensity','Hue','OD280/OD315','Proline']
+df=pd.read_csv(url,header=None,names=columns)
+x=df.drop('Class',axis=1).values
+y=df['Class'].values-1
+y=to_categorical(y)
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=42)
+scaler=StandardScaler()
+x_train=scaler.fit_transform(x_train)
+x_test=scaler.transform(x_test)
+model=Sequential()
+model.add(Dense(64,input_dim=x.shape[1],activation='relu'))
+model.add(Dense(32,activation='relu'))
+model.add(Dense(3,activation='softmax'))
+model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=50, batch_size=8, verbose=0)
+loss,accuracy=model.evaluate(x_test,y_test)
+print(f"\nTest Accuracy: {accuracy:.4f}")

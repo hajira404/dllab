@@ -1,0 +1,45 @@
+#DL 2 prompt: using backtracking method generate an xor gate with out implementing sequentional class 
+
+import numpy as np
+# We will define a simple network with one hidden layer and simulate the backpropagation manually.
+
+# Define activation function (sigmoid) and its derivative
+def sigmoid(x):
+  return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+  return x * (1 - x)
+
+# Initial weights (randomly)
+np.random.seed(1) # for reproducibility
+weights0 = 2 * np.random.random((2, 4)) - 1 # Weights for input to hidden layer
+weights1 = 2 * np.random.random((4, 1)) - 1 # Weights for hidden to output layer
+
+# Backpropagation loop
+epochs = 50000
+learning_rate = 0.1
+
+for epoch in range(epochs):
+  # Forward pass
+  layer0 = X # Input layer
+  layer1 = sigmoid(np.dot(layer0, weights0)) # Hidden layer
+  layer2 = sigmoid(np.dot(layer1, weights1)) # Output layer
+
+  # Backpropagation
+  layer2_error = y - layer2 # Error at the output layer
+  layer2_delta = layer2_error * sigmoid_derivative(layer2) # Delta for output layer
+
+  layer1_error = layer2_delta.dot(weights1.T) # Error at the hidden layer
+  layer1_delta = layer1_error * sigmoid_derivative(layer1) # Delta for hidden layer
+
+  # Update weights
+  weights1 += layer1.T.dot(layer2_delta) * learning_rate
+  weights0 += layer0.T.dot(layer1_delta) * learning_rate
+
+# Final predictions
+final_predictions = sigmoid(np.dot(sigmoid(np.dot(X, weights0)), weights1))
+
+print("\nPredictions after manual backpropagation:")
+for i in range(len(X)):
+    print(f"Input: {X[i]} => Predicted: {final_predictions[i][0]:.4f} | Rounded: {np.round(final_predictions[i][0])}")
+
