@@ -1,48 +1,44 @@
-dl 7
-# 2. Import Libraries
-from keras.datasets import boston_housing
-from keras.models import Sequential
-from keras.layers import Dense
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+import nltk
+from nltk.tokenize import word_tokenize
 
-# 3. Data Preparation
-(x_train, y_train), (x_test, y_test) = boston_housing.load_data()
+nltk.download('punkt')
 
-# Normalize features
-scaler = StandardScaler()
-x_train = scaler.fit_transform(x_train)
-x_test = scaler.transform(x_test)
+states = ['Noun', 'Verb']
 
-# 4. Model Definition
-model = Sequential()
-model.add(Dense(64, input_dim=x_train.shape[1], activation='relu'))
-model.add(Dense(32, activation='relu'))
-model.add(Dense(1))  # Regression output
+start_prob = {'Noun': 0.9, 'Verb': 0.1}
 
-# 5. Compile the Model
-model.compile(optimizer='adam', loss='mean_squared_error')
+trans_prob = {
+    'Noun': {'Noun': 0.3, 'Verb': 0.7},
+    'Verb': {'Noun': 0.4, 'Verb': 0.6}
+}
 
-# 6. Training
-history = model.fit(x_train, y_train, epochs=100, batch_size=16, verbose=0)
+emiss_prob = {
+    'Noun': {'the': 0.9, 'dog': 0.8, 'barks': 0.1},
+    'Verb': {'the': 0.05, 'dog': 0.1, 'barks': 0.85}
+}
 
-# 7. Evaluation
-mse = model.evaluate(x_test, y_test)
-print(f"\nMean Squared Error on Test Data: {mse:.2f}")
+def viterbi_tagged_compact(words):
+    V = [{s: start_prob[s] * emiss_prob[s].get(words[0], 1e-6) for s in states}]
+    path = {s: [s] for s in states}
+    
+    for t in range(1, len(words)):
+        V.append({})
+        new_path = {}
+        for cs in states:
+            max_prob, best_ps = max(
+                (V[t-1][ps] * trans_prob[ps][cs] * emiss_prob[cs].get(words[t], 1e-6), ps)
+                for ps in states
+            )
+            V[t][cs] = max_prob
+            new_path[cs] = path[best_ps] + [cs]
+        path = new_path
+    
+    best_final = max(V[-1], key=V[-1].get)
+    return list(zip(words, path[best_final]))
 
-# Plot Training Loss
-plt.plot(history.history['loss'])
-plt.title('Training Loss Curve (Boston Housing)')
-plt.xlabel('Epochs')
-plt.ylabel('Loss (MSE)')
-plt.grid()
-plt.show()
+sentence = "The dog barks"
+tokens = word_tokenize(sentence.lower())
 
-# Plot Predicted vs Actual Prices
-y_pred = model.predict(x_test).flatten()
-plt.scatter(y_test, y_pred)
-plt.xlabel('Actual Prices')
-plt.ylabel('Predicted Prices')
-plt.title('Actual vs Predicted House Prices')
-plt.grid()
-plt.show()
+tagged_words = viterbi_tagged_compact(tokens)
+print(f"Sentence: {sentence}")
+print(f"Tagged Words: {tagged_words}")

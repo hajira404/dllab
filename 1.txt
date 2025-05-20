@@ -1,33 +1,29 @@
 import numpy as np
-class perceptron:
-  def __init__(self, input_size, learning_rate=0.1, epochs=10):
-    self.weights=np.zeros(input_size)
-    self.bias=0
-    self.learning_rate=learning_rate
-    self.epochs=epochs
-  def activation(self, x):
-    return 1 if x>=0 else 0
-  def predict(self, inputs):
-    summation=np.dot(inputs,self.weights)+self.bias
-    return self.activation(summation)
-  def train(self, training_inputs, labels):
-    for epochs in range(self.epochs):
-      for inputs, label in zip(training_inputs, labels):
-        prediction=self.predict(inputs)
-        error= label - prediction
-        self.weights+=self.learning_rate*error*np.array(inputs)
-        self.bias+=self.learning_rate*error
-and_inputs=np.array([[0,0],[0,1],[1,0],[1,1]])
-and_labels=np.array([0,0,0,1])
-or_inputs=np.array([[0,0],[0,1],[1,0],[1,1]])
-or_labels=np.array([0,1,1,1])
-and_perceptron=perceptron(input_size=2)
-or_perceptron=perceptron(input_size=2)
-and_perceptron.train(and_inputs, and_labels)
-or_perceptron.train(or_inputs, or_labels)
-print("AND results")
-for inputs in and_inputs:
-  print(f"input:{inputs} prediction: {and_perceptron.predict(inputs)}")
-print("OR results")
-for inputs in or_inputs:
-  print(f"input:{inputs} prediction: {or_perceptron.predict(inputs)}")
+import spacy
+import nltk
+import re
+from nltk.tokenize import word_tokenize
+nltk.download('punkt')
+
+nlp = spacy.load("en_core_web_sm")  
+text = """
+Natural Language Processing (NLP) is an area of artificial intelligence (AI) focused on the interaction between computers and human language. 
+It enables machines to understand, interpret, and generate human language. Let's tokenize this text using spaCy, NLTK, and regular expressions!
+"""
+
+doc = nlp(text)
+sentences_spacy = [sent.text for sent in doc.sents]
+
+words_nltk = word_tokenize(text)
+
+words_with_regex = re.findall(r'\b[A-Za-z]+\b', text)
+
+print("Sentence Segmentation using spaCy:")
+for i, sentence in enumerate(sentences_spacy, 1):
+    print(f"{i}. {sentence}")
+
+print("\nWord Tokenization using NLTK:")
+print(words_nltk)
+
+print("\nWord Tokenization using Regular Expressions:")
+print(words_with_regex)

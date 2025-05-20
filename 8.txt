@@ -1,23 +1,39 @@
-dl8
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense,MaxPooling2D,Conv2D,Flatten
-from keras.utils import to_categorical
-import numpy as np
-(x_train,y_train),(x_test,y_test)=mnist.load_data()
-x_train=x_train.reshape((x_train.shape[0],28,28,1)).astype(np.float32)/255
-x_test=x_test.reshape((x_test.shape[0],28,28,1)).astype(np.float32)/255
-y_train = to_categorical(y_train)
-y_test = to_categorical(y_test)
-model=Sequential()
-model.add(Conv2D(32,kernel_size=(3,3),activation='relu',input_shape=(28,28,1)))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Conv2D(64,kernel_size=(3,3),activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dense(10, activation='softmax')) 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model.fit(x_train, y_train, epochs=5, batch_size=128, verbose=1)
-loss, accuracy = model.evaluate(x_test, y_test)
-print(f"\nTest Accuracy: {accuracy:.4f}")
+import nltk
+from nltk import word_tokenize, pos_tag, ne_chunk
+
+# Make sure NLTK resources are downloaded
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('maxent_ne_chunker')
+nltk.download('words')
+# Download the missing resource
+nltk.download('maxent_ne_chunker_tab')
+
+def extract_entities(text):
+    entities = {'PERSON': [], 'LOCATION': []}
+
+    # Step 1: Tokenize and POS tagging
+    tokens = word_tokenize(text)
+    pos_tags = pos_tag(tokens)
+
+    # Step 2: Named Entity Chunking
+    tree = ne_chunk(pos_tags, binary=False)
+
+    # Step 3: Traverse the tree and extract Person and Location
+    for subtree in tree:
+        if hasattr(subtree, 'label'):
+            if subtree.label() == 'PERSON':
+                name = ' '.join([leaf[0] for leaf in subtree.leaves()])
+                entities['PERSON'].append(name)
+            elif subtree.label() == 'GPE':  # GPE = Geo-Political Entity (like cities, countries)
+                location = ' '.join([leaf[0] for leaf in subtree.leaves()])
+                entities['LOCATION'].append(location)
+
+    return entities
+
+# Example usage
+text = "Barack Obama was born in Hawaii. Narendra Modi visited New York last year."
+entities = extract_entities(text)
+
+print("Persons:", entities['PERSON'])
+print("Locations:", entities['LOCATION'])

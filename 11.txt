@@ -1,37 +1,16 @@
-#DL 11
-# 1. Problem Statement:
-# Build an RNN to classify IMDB movie reviews as positive or negative.
-
-# 2. Import Libraries
-import numpy as np
-from tensorflow.keras.datasets import imdb
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, SimpleRNN, Dense
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
-# 3. Load IMDb Dataset
-# Only keep the top 5000 most frequent words
-vocab_size = 5000
-maxlen = 500  # We'll pad/truncate reviews to 500 words
-
-(X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=vocab_size)
-
-# 4. Padding sequences
-X_train = pad_sequences(X_train, maxlen=maxlen)
-X_test = pad_sequences(X_test, maxlen=maxlen)
-
-# 5. Model Definition
-model = Sequential()
-model.add(Embedding(input_dim=vocab_size, output_dim=32))
-model.add(SimpleRNN(32))  # You can change to LSTM(32) later
-model.add(Dense(1, activation='sigmoid'))
-
-# 6. Compile the Model
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-# 7. Training
-model.fit(X_train, y_train, epochs=5, batch_size=64, validation_split=0.2)
-
-# 8. Evaluation
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f"\nTest Accuracy: {accuracy:.4f}")
+import nltk
+nltk.download('vader_lexicon')
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+def analyze_sentiment(review):
+    analyzer = SentimentIntensityAnalyzer()
+    scores = analyzer.polarity_scores(review)
+    if scores['compound'] >= 0.05:
+        return "Positive"
+    elif scores['compound'] <= -0.05:
+        return "Negative"
+    else:
+        return "Neutral"
+reviews=input("Enter your movie review: ")
+sentiment = analyze_sentiment(reviews)
+print(f"Review: {reviews}")
+print(f"Sentiment: {sentiment}\n")

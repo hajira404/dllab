@@ -1,51 +1,10 @@
-DL 10
-# 1. Problem Statement:
-# Develop a simple Recurrent Neural Network (RNN) using Keras to understand sequential patterns.
-
-# 2. Import Libraries
-import numpy as np
-from keras.models import Sequential
-from keras.layers import SimpleRNN, Dense
-from keras.utils import to_categorical
-
-# 3. Data Preparation
-# Let's create a toy sequence problem: Learn to predict the sum of binary digits in a sequence
-
-# Example: input = [0,1,1] => output = 2
-# We'll convert output to categorical for classification (0 to 3)
-
-X = np.array([
-    [[0], [0], [0]],
-    [[0], [0], [1]],
-    [[0], [1], [0]],
-    [[1], [0], [0]],
-    [[1], [1], [0]],
-    [[1], [1], [1]],
-    [[0], [1], [1]],
-    [[1], [0], [1]]
-], dtype=np.float32)
-
-y = np.array([0, 1, 1, 1, 2, 3, 2, 2])
-y = to_categorical(y, num_classes=4)
-
-# 4. Model Definition
-# 4. Model Definition
-model = Sequential()
-model.add(SimpleRNN(16, input_shape=(3, 1), activation='tanh'))  # increased units + tanh activation
-model.add(Dense(4, activation='softmax'))  # 4 classes: 0, 1, 2, 3
-
-# 5. Compile the Model
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-# 6. Training
-model.fit(X, y, epochs=500, verbose=0)  # More epochs to let it fully memorize
-
-
-# 7. Evaluation
-predictions = model.predict(X)
-print("\nPredictions:")
-for i, p in enumerate(predictions):
-    print(f"Input: {X[i].flatten()} => Predicted Sum: {np.argmax(p)} | True: {np.argmax(y[i])}")
-
-# 8. Conclusion
-# The RNN learns the sequential pattern and can predict the binary sum of short sequences.
+!pip install googletrans==3.1.0a0
+from googletrans import Translator
+translator = Translator()
+text = input("Enter English Text: ")
+source_lang = "en"
+target_lang = "hi"
+translated_text = translator.translate(text, src=source_lang, dest=target_lang)
+print(f"English Language: {text}")
+print(f"Hindi Language: {translated_text.text}")
+print(f"Pronunciation: {translated_text.pronunciation}")
