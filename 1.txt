@@ -1,29 +1,46 @@
-import numpy as np
-import spacy
-import nltk
+import multiprocessing
+from collections import defaultdict
 import re
-from nltk.tokenize import word_tokenize
-nltk.download('punkt')
+from google.colab import files
 
-nlp = spacy.load("en_core_web_sm")  
-text = """
-Natural Language Processing (NLP) is an area of artificial intelligence (AI) focused on the interaction between computers and human language. 
-It enables machines to understand, interpret, and generate human language. Let's tokenize this text using spaCy, NLTK, and regular expressions!
-"""
+uploaded = files.upload()  
 
-doc = nlp(text)
-sentences_spacy = [sent.text for sent in doc.sents]
 
-words_nltk = word_tokenize(text)
+filename = list(uploaded.keys())[0]
 
-words_with_regex = re.findall(r'\b[A-Za-z]+\b', text)
 
-print("Sentence Segmentation using spaCy:")
-for i, sentence in enumerate(sentences_spacy, 1):
-    print(f"{i}. {sentence}")
+def map_function(text_chunk):
+    word_counts = defaultdict(int)
+    words = re.findall(r'\w+', text_chunk.lower())
+    for word in words:
+        word_counts[word] += 1
+    return word_counts
 
-print("\nWord Tokenization using NLTK:")
-print(words_nltk)
 
-print("\nWord Tokenization using Regular Expressions:")
-print(words_with_regex)
+def reduce_function(mapped_results):
+    final_counts = defaultdict(int)
+    for word_count in mapped_results:
+        for word, count in word_count.items():
+            final_counts[word] += count
+    return dict(final_counts)
+
+
+def mapreduce_word_count(text, num_processes=4):
+    chunk_size = len(text) // num_processes
+    text_chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+    with multiprocessing.Pool(num_processes) as pool:
+        mapped_results = pool.map(map_function, text_chunks)
+
+    reduced_result = reduce_function(mapped_results)
+    return reduced_result
+
+
+with open(filename, 'r', encoding='utf-8') as file:
+    input_text = file.read()
+
+
+result = mapreduce_word_count(input_text, num_processes=4)
+
+for word in sorted(result):
+    print(f"{word}: {result[word]}")
